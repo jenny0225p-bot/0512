@@ -22,7 +22,7 @@ function gotFaces(results) {
 }
 
 function draw() {
-  background('#df9ebe'); // 設定畫布背景顏色為 669bbc
+  background('#dfa89e'); // 設定畫布背景顏色為 dfa89e
 
   // 在置中上方加上文字
   fill(255); // 白色文字
