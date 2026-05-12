@@ -30,7 +30,7 @@ function draw() {
   fill(0); // 設定文字顏色為黑色
   noStroke();
   textAlign(CENTER, CENTER);
-  textSize(width * 0.03); // 根據畫布寬度動態調整文字大小
+  textSize(width * 0.035); // 根據畫布寬度動態調整文字大小
   text('414730159彭宥蓁', width / 2, height * 0.1);
   pop();
 
@@ -57,13 +57,19 @@ function draw() {
 
     for (let index of earlobeIndices) {
       let pt = face.keypoints[index];
-      // 因為外層有 scale(-1, 1)，這裡的 x 映射範圍需要反轉 (vWidth/2 到 -vWidth/2)
-      let x = map(pt.x, 0, capture.width, vWidth / 2, -vWidth / 2);
-      let y = map(pt.y, 0, capture.height, -vHeight / 2, vHeight / 2);
+      
+      // 針對手機掃描建議的 90 度座標轉換：
+      // 新的 X 座標採用原始 Y，新的 Y 座標採用 (原始寬度 - 原始 X)
+      let rotatedX = pt.y;
+      let rotatedY = capture.width - pt.x;
+
+      // 將旋轉後的座標映射到畫布中心座標系
+      let x = map(rotatedX, 0, capture.height, vWidth / 2, -vWidth / 2);
+      let y = map(rotatedY, 0, capture.width, -vHeight / 2, vHeight / 2);
 
       // 繪製三個圓圈組成耳環
       for (let i = 0; i < 3; i++) {
-        circle(x, y + (i + 1) * 15, 10); // 從耳垂下方開始繪製
+        circle(x, y + (i + 1) * 15, 10);
       }
     }
   }
