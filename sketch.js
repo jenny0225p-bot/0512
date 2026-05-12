@@ -1,77 +1,83 @@
-let capture;
-let faceMesh;
-let faces = [];
-let options = { maxFaces: 1, refineLandmarks: true, flipHorizontal: false };
+let video; // 宣告一個全域變數來儲存攝影機影像
+let faceMesh; // faceMesh 模型物件
+let faces = []; // 儲存偵測到的臉部結果
 
 function preload() {
-faceMesh = ml5.faceMesh(options);
+  // 初始化 faceMesh 模型
+  faceMesh = ml5.faceMesh();
 }
 
 function setup() {
-createCanvas(windowWidth, windowHeight);
-capture = createCapture(VIDEO);
-capture.size(640, 480);
-capture.hide();
-faceMesh.detectStart(capture, gotFaces);
+  createCanvas(windowWidth, windowHeight); // 建立一個全螢幕的畫布
+  video = createCapture(VIDEO); // 擷取攝影機影像
+  video.hide(); // 隱藏由 createCapture 預設建立的 HTML 影片元素
+
+  // 開始持續偵測影像中的臉部
+  faceMesh.detectStart(video, gotFaces);
 }
 
+// 取得偵測結果的回呼函式
 function gotFaces(results) {
-faces = results;
+  faces = results;
 }
 
 function draw() {
-background('#e7c6ff');
+  background('#df9ebe'); // 設定畫布背景顏色為 669bbc
 
-// 1. 顯示學號姓名 (維持原樣)
-push();
-fill(0);
-noStroke();
-textAlign(CENTER, CENTER);
-textSize(width * 0.035);
-text('414730159彭宥蓁', width / 2, height * 0.1);
-pop();
+  // 在置中上方加上文字
+  fill(255); // 白色文字
+  noStroke();
+  textSize(24);
+  textAlign(CENTER, TOP);
+  text("414730159彭宥蓁ˊ", width / 2, 20);
+  textSize(18);
+  text("作品為影像辨識_耳環臉譜", width / 2, 55);
 
-let vWidth = width * 0.5;
-let vHeight = height * 0.5;
+  // 計算影像應顯示的寬高，為畫布的 50%
+  let imgW = width * 0.5;
+  let imgH = height * 0.5;
 
-push();
-// 2. 移動到畫布中心
-translate(width / 2, height / 2);
+  // 確保攝影機影像已載入後才進行繪製
+  if (video.loadedmetadata) {
+    push(); // 儲存目前的繪圖狀態
+    translate(width / 2, height / 2); // 移動到畫布中心
+    scale(-1, 1); // 左右顛倒（鏡像）
+    image(video, -imgW / 2, -imgH / 2, imgW, imgH); 
 
-// 3. 處理鏡像
-// 如果你在 setup 設定 flipHorizontal: false，這裡要用 scale(-1, 1) 讓自己像照鏡子
-scale(-1, 1);
+    // 繪製耳垂上的三個黃色圓圈（耳環效果）
+    if (faces.length > 0) {
+      let face = faces[0];
+      // 根據 TensorFlow 官方 Mesh Map：132 為左耳垂，361 為右耳垂
+      let leftLobe = face.keypoints[132]; 
+      let rightLobe = face.keypoints[361];
 
-imageMode(CENTER);
-image(capture, 0, 0, vWidth, vHeight);
-
-if (faces.length > 0) {
-let face = faces[0];
-
-// 常用耳垂附近的點：
-// 左耳垂附近: 132 或 147 或 215
-// 右耳垂附近: 361 或 376 或 435
-let earlobeIndices = [132, 361];
-
-fill('#ffff00');
-noStroke();
-
-for (let index of earlobeIndices) {
-let pt = face.keypoints[index];
-
-// 重要修正：移除 X/Y 互換邏輯，直接對應
-// 將 640x480 的座標 映射到畫布中央顯示的 vWidth x vHeight 範圍內
-// 因為 imageMode 是 CENTER，且原點在畫布中心，所以範圍是 -vWidth/2 到 vWidth/2
-let x = map(pt.x, 0, capture.width, -vWidth / 2, vWidth / 2);
-let y = map(pt.y, 0, capture.height, -vHeight / 2, vHeight / 2);
-
-// 繪製耳環
-for (let i = 0; i < 3; i++) {
-// y + (i + 1) * 15 讓圓圈往下排
-circle(x, y + (i + 1) * 15, 10);
+      if (leftLobe) drawEarring(leftLobe, imgW, imgH);
+      if (rightLobe) drawEarring(rightLobe, imgW, imgH);
+    }
+    pop(); 
+  }
 }
+
+function drawEarring(pt, imgW, imgH) {
+  fill('#ffff00'); // 黃色
+  noStroke();
+  
+  // 使用 video.elt.videoWidth 獲取攝影機原始解析度，解決座標偏移問題
+  let vW = video.elt.videoWidth || 640;
+  let vH = video.elt.videoHeight || 480;
+  
+  let dx = map(pt.x, 0, vW, -imgW / 2, imgW / 2);
+  let dy = map(pt.y, 0, vH, -imgH / 2, imgH / 2);
+
+  // 從耳垂位置往下畫三個圓圈
+  for (let i = 0; i < 3; i++) {
+    circle(dx, dy + (i * 12) + 5, 8); // 微調間距與半徑，使其看起來更像垂吊耳環
+  }
 }
+
+// 當視窗大小改變時，重新調整畫布大小以保持全螢幕
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
 }
-pop();
-}
+
 
