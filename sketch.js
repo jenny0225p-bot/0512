@@ -1,7 +1,7 @@
 let capture;
 let faceMesh;
-let faces = [];
-let options = { maxFaces: 1, refineLandmarks: false, flipHorizontal: false };
+let faces = []; // 確保全域變數已宣告，避免 ReferenceError
+let options = { maxFaces: 1, refineLandmarks: true, flipHorizontal: false };
 
 function preload() {
   // 載入 faceMesh 模型
@@ -40,7 +40,7 @@ function draw() {
   if (faces.length > 0) {
     let face = faces[0];
     
-    // MediaPipe FaceMesh 特徵點索引：176 為右耳垂附近，400 為左耳垂附近
+    // MediaPipe FaceMesh 特徵點索引：176 為右耳垂底，400 為左耳垂底
     let earlobeIndices = [176, 400];
     
     fill('#ffff00'); // 黃色
@@ -54,7 +54,7 @@ function draw() {
 
       // 繪製三個圓圈組成耳環
       for (let i = 0; i < 3; i++) {
-        circle(x, y + i * 15 + 10, 10);
+        circle(x, y + (i + 1) * 15, 10); // 從耳垂下方開始繪製
       }
     }
   }
