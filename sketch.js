@@ -25,6 +25,15 @@ function gotFaces(results) {
 function draw() {
   background('#e7c6ff');
 
+  // 在擷取影像的外面置中上方加上文字
+  push();
+  fill(0); // 設定文字顏色為黑色
+  noStroke();
+  textAlign(CENTER, CENTER);
+  textSize(width * 0.03); // 根據畫布寬度動態調整文字大小
+  text('414730159彭宥蓁', width / 2, height * 0.1);
+  pop();
+
   let vWidth = width * 0.5;
   let vHeight = height * 0.5;
 
@@ -40,7 +49,7 @@ function draw() {
   if (faces.length > 0) {
     let face = faces[0];
     
-    // MediaPipe FaceMesh 特徵點索引：176 為右耳垂底，400 為左耳垂底
+    // MediaPipe FaceMesh 特徵點索引：176 為右耳垂區域，400 為左耳垂區域
     let earlobeIndices = [176, 400];
     
     fill('#ffff00'); // 黃色
@@ -48,8 +57,8 @@ function draw() {
 
     for (let index of earlobeIndices) {
       let pt = face.keypoints[index];
-      // 將影片座標映射到畫布上的顯示大小（中心化座標系）
-      let x = map(pt.x, 0, capture.width, -vWidth / 2, vWidth / 2);
+      // 因為外層有 scale(-1, 1)，這裡的 x 映射範圍需要反轉 (vWidth/2 到 -vWidth/2)
+      let x = map(pt.x, 0, capture.width, vWidth / 2, -vWidth / 2);
       let y = map(pt.y, 0, capture.height, -vHeight / 2, vHeight / 2);
 
       // 繪製三個圓圈組成耳環
